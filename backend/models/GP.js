@@ -8,7 +8,7 @@ const gpSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    speciality: {
+    specialty: {
         type: String,
         required: true,
     },
@@ -23,4 +23,4 @@ const gpSchema = new mongoose.Schema({
         {type: String },
     ],
 })
-module.exports = mongoose.model('Gp', gpSchema);
+module.exports = mongoose.model('GP', gpSchema);
