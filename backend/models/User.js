@@ -1,4 +1,5 @@
 
+
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
@@ -8,6 +9,8 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: true },
     university: { type: String },
     address: { type: String },
+    role: { type: String, enum: ['patient', 'receptionist'], required: true, default: 'patient'}, 
+    // added the role above to the existing schema already part of this tuple from the activity
 });
 
 userSchema.pre('save', async function (next) {
