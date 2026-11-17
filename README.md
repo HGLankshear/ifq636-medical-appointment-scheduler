@@ -21,7 +21,7 @@ Its database is MongoDB Atlas 'ifq636-medical-appointment-scheduler'
 - **Receptionist:** `receptionist@clinic.test` / `Password123!`
  
 ## Production / EC2 Deployment
-- Live EC2 URL: `got to put the url here in a sec after doing the other stuff, temp`
+- Live EC2 URL: `http://3.27.191.10/`
 - Single-port Express static build: `npm run build --prefix frontend` then `pm2 start server.js --name imas-scheduler`
  
 ## Known Limitations
