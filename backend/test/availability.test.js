@@ -47,4 +47,11 @@ describe('AvailabilityEngine', () => {
     const next = findNextAvailableSlot([gp1, gp2], '2026-11-30', '10:00', 15, busyBoth);
     expect(next.startTime).to.equal('10:15');
   });
+ 
+  it('honors tentativeGpId hold while No Preference request is Pending', () => {
+    const held = [
+      { _id: 'a3', gpId: null, tentativeGpId: 'gp1', date: '2026-11-30', startTime: '11:00', durationMinutes: 20, status: 'Pending' },
+    ];
+    expect(isGpFree(gp1, '2026-11-30', '11:00', 15, held)).to.equal(false);
+  });
 });
