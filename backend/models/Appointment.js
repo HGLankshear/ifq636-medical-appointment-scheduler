@@ -2,7 +2,13 @@ const mongoose = require('mongoose');
  
 const appointmentSchema = new mongoose.Schema(
   {
-    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    patientId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false, default: null },
+    isGuestBooking: { type: Boolean, default: false },
+    guestDetails: {
+      name: { type: String, default: '' },
+      phone: { type: String, default: '' },
+      email: { type: String, default: '' },
+    },
     gpId: { type: mongoose.Schema.Types.ObjectId, ref: 'GP', default: null },
     tentativeGpId: { type: mongoose.Schema.Types.ObjectId, ref: 'GP', default: null },
     noPreference: { type: Boolean, default: false },

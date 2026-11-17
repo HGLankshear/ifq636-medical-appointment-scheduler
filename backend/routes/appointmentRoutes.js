@@ -7,6 +7,7 @@ const {
   approveAppointment,
   rejectAppointment,
   cancelAppointment,
+  createDirectAppointment,
 } = require('../controllers/appointmentController');
  
 const router = express.Router();
@@ -16,5 +17,6 @@ router.get('/', protect, authorizeRoles('receptionist'), getAllAppointments);
 router.patch('/:id/approve', protect, authorizeRoles('receptionist'), approveAppointment);
 router.patch('/:id/reject', protect, authorizeRoles('receptionist'), rejectAppointment);
 router.patch('/:id/cancel', protect, authorizeRoles('patient'), cancelAppointment);
+router.post('/direct', protect, authorizeRoles('receptionist'), createDirectAppointment);
  
 module.exports = router;
