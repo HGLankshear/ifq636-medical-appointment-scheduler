@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import { useAuth } from './context/AuthContext';
 import AccessDenied from './pages/AccessDenied';
+import PatientDashboard from './pages/PatientDashboard';
  
 function RoleRoute({ allowedRole, children }) {
   const { user } = useAuth();
@@ -12,7 +13,6 @@ function RoleRoute({ allowedRole, children }) {
   return children;
 }
  
-const PatientPlaceholder = () => <div className="p-6 text-center">Patient Dashboard (Built in Stage 4)</div>;
 const ReceptionistPlaceholder = () => <div className="p-6 text-center">Receptionist Queue (Built in Stage 5)</div>;
  
 function App() {
@@ -27,7 +27,7 @@ function App() {
           path="/patient"
           element={
             <RoleRoute allowedRole="patient">
-              <PatientPlaceholder />
+              <PatientDashboard />
             </RoleRoute>
           }
         />
