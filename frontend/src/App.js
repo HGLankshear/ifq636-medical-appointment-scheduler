@@ -5,6 +5,7 @@ import Profile from './pages/Profile';
 import { useAuth } from './context/AuthContext';
 import AccessDenied from './pages/AccessDenied';
 import PatientDashboard from './pages/PatientDashboard';
+import ReceptionistDashboard from './pages/ReceptionistDashboard';
  
 function RoleRoute({ allowedRole, children }) {
   const { user } = useAuth();
@@ -12,8 +13,6 @@ function RoleRoute({ allowedRole, children }) {
   if (user.role !== allowedRole) return <Navigate to="/access-denied" replace />;
   return children;
 }
- 
-const ReceptionistPlaceholder = () => <div className="p-6 text-center">Receptionist Queue (Built in Stage 5)</div>;
  
 function App() {
   return (
@@ -35,7 +34,7 @@ function App() {
           path="/receptionist"
           element={
             <RoleRoute allowedRole="receptionist">
-              <ReceptionistPlaceholder />
+              <ReceptionistDashboard />
             </RoleRoute>
           }
         />
