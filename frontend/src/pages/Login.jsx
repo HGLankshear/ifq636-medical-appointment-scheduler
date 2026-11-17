@@ -2,27 +2,32 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../axiosConfig';
-
+ 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
-
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     try {
       const response = await axiosInstance.post('/api/auth/login', formData);
       login(response.data);
-      navigate('/tasks');
-    } catch (error) {
-      alert('Login failed. Please try again.');
+      navigate(response.data.role === 'receptionist' ? '/receptionist' : '/patient');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid email or password');
     }
   };
-
+ 
   return (
     <div className="max-w-md mx-auto mt-20">
       <form onSubmit={handleSubmit} className="bg-white p-6 shadow-md rounded">
         <h1 className="text-2xl font-bold mb-4 text-center">Login</h1>
+        {error && (
+          <div className="mb-4 rounded bg-red-50 p-2 text-sm text-red-700">{error}</div>
+        )}
         <input
           type="email"
           placeholder="Email"
@@ -44,5 +49,7 @@ const Login = () => {
     </div>
   );
 };
-
+ 
 export default Login;
+
+//Not sure if this will work but this is meant to make the error banner go inline
