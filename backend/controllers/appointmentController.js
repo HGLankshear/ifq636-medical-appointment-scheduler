@@ -20,7 +20,8 @@ const createAppointmentRequest = async (req, res) => {
  
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    if (date < todayStr) {
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    if (date < todayStr || (date === todayStr && toMinutes(startTime) <= nowMins)) {
       return res.status(400).json({ message: 'Cannot request an appointment in the past.' });
     }
  
