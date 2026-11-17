@@ -223,6 +223,89 @@ const cancelAppointment = async (req, res) => {
   }
 };
  
+const createDirectAppointment = async (req, res) => {
+  try {
+    const {
+      bookingFor,
+      patientId,
+      guestDetails,
+      date,
+      startTime,
+      appointmentType,
+      gpId,
+      reason,
+    } = req.body;
+ 
+    if (!date || !startTime || !appointmentType || !gpId) {
+      return res.status(400).json({ message: 'Please select date, time, type, and assigned GP.' });
+    }
+ 
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    if (date < todayStr || (date === todayStr && toMinutes(startTime) <= nowMins)) {
+      return res.status(400).json({ message: 'Cannot create a direct booking in the past.' });
+    }
+ 
+    const durationMinutes = APPOINTMENT_DURATIONS[appointmentType];
+    if (!durationMinutes) {
+      return res.status(400).json({ message: 'Invalid appointment type.' });
+    }
+    if (toMinutes(startTime) % SLOT_STEP_MINUTES !== 0) {
+      return res.status(400).json({ message: 'Start time must align to 15-minute intervals.' });
+    }
+ 
+    const isGuest = bookingFor === 'guest';
+    if (!isGuest && !patientId) {
+      return res.status(400).json({ message: 'Please select a registered patient.' });
+    }
+    if (isGuest && (!guestDetails || !guestDetails.name || !guestDetails.name.trim())) {
+      return res.status(400).json({ message: 'Please enter the guest patient name.' });
+    }
+ 
+    const gp = await GP.findById(gpId);
+    if (!gp) {
+      return res.status(404).json({ message: 'Selected GP not found.' });
+    }
+ 
+    const dayAppts = await Appointment.find({
+      date,
+      status: { $in: ['Pending', 'Approved'] },
+    });
+ 
+    if (!isGpFree(gp, date, startTime, durationMinutes, dayAppts)) {
+      return res.status(409).json({
+        message: `${gp.name} is unavailable or overlaps an existing booking at ${startTime}.`,
+      });
+    }
+ 
+    const created = await Appointment.create({
+      patientId: isGuest ? null : patientId,
+      isGuestBooking: isGuest,
+      guestDetails: isGuest
+        ? {
+            name: guestDetails.name.trim(),
+            phone: (guestDetails.phone || '').trim(),
+            email: (guestDetails.email || '').trim(),
+          }
+        : { name: '', phone: '', email: '' },
+      gpId: gp._id,
+      tentativeGpId: null,
+      noPreference: false,
+      date,
+      startTime,
+      durationMinutes,
+      appointmentType,
+      reason: reason || '',
+      status: 'Approved',
+    });
+ 
+    return res.status(201).json(created);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+ 
 module.exports = {
   createAppointmentRequest,
   getMyAppointments,
@@ -230,4 +313,5 @@ module.exports = {
   approveAppointment,
   rejectAppointment,
   cancelAppointment,
+  createDirectAppointment,
 };
