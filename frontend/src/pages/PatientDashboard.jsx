@@ -34,6 +34,9 @@ export default function PatientDashboard() {
   const [nextSlot, setNextSlot] = useState(null);
   const [banner, setBanner] = useState({ type: 'success', message: '' });
  
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [showCancelled, setShowCancelled] = useState(false);
+ 
   const loadData = async () => {
     try {
       setLoading(true);
@@ -89,6 +92,18 @@ export default function PatientDashboard() {
     }
   };
  
+  const handleConfirmCancel = async () => {
+    try {
+      await axiosInstance.patch(`/api/appointments/${cancelTarget._id}/cancel`);
+      setCancelTarget(null);
+      setBanner({ type: 'success', message: 'Appointment cancelled and slot released.' });
+      await loadData();
+    } catch (err) {
+      setCancelTarget(null);
+      setBanner({ type: 'error', message: err.response?.data?.message || 'Could not cancel booking.' });
+    }
+  };
+ 
   const formatGpDisplay = (appt) => {
     if (appt.gpId) return appt.gpId.name;
     if (appt.noPreference && appt.tentativeGpId) {
@@ -96,6 +111,9 @@ export default function PatientDashboard() {
     }
     return 'No preference';
   };
+ 
+  const activeList = appointments.filter((a) => a.status !== 'Cancelled');
+  const cancelledList = appointments.filter((a) => a.status === 'Cancelled');
  
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -234,12 +252,12 @@ export default function PatientDashboard() {
           <h2 className="text-xl font-bold text-teal-800 mb-4">My Appointment Requests</h2>
           {loading && <p className="text-slate-500">Loading your appointments...</p>}
           {fetchError && <p className="text-red-600">{fetchError}</p>}
-          {!loading && !fetchError && appointments.length === 0 && (
-            <p className="text-slate-500">You have no appointment requests yet.</p>
+          {!loading && !fetchError && activeList.length === 0 && (
+            <p className="text-slate-500">You have no active appointment requests.</p>
           )}
  
           <div className="space-y-3">
-            {appointments.map((appt) => (
+            {activeList.map((appt) => (
               <div key={appt._id} className="border rounded p-3 flex justify-between items-start">
                 <div>
                   <p className="font-semibold text-slate-800">
@@ -254,12 +272,72 @@ export default function PatientDashboard() {
                     </p>
                   )}
                 </div>
-                <StatusBadge status={appt.status} />
+                <div className="flex flex-col items-end gap-2">
+                  <StatusBadge status={appt.status} />
+                  {['Pending', 'Approved'].includes(appt.status) && (
+                    <button
+                      type="button"
+                      onClick={() => setCancelTarget(appt)}
+                      className="text-xs text-red-600 underline hover:text-red-800"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
+ 
+          {cancelledList.length > 0 && (
+            <div className="mt-6 border-t pt-4">
+              <button
+                type="button"
+                onClick={() => setShowCancelled(!showCancelled)}
+                className="text-sm font-semibold text-slate-600 hover:text-slate-900"
+              >
+                {showCancelled ? 'Hide' : 'Show'} Cancelled Appointments ({cancelledList.length})
+              </button>
+              {showCancelled && (
+                <div className="mt-3 space-y-2">
+                  {cancelledList.map((appt) => (
+                    <div key={appt._id} className="border rounded p-2 text-sm text-slate-500 flex justify-between">
+                      <span>{appt.date} at {appt.startTime} — {appt.appointmentType}</span>
+                      <StatusBadge status={appt.status} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
+ 
+      {cancelTarget && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+          <div className="bg-white rounded shadow-lg max-w-sm w-full p-6">
+            <h2 className="text-lg font-bold mb-2">Cancel Appointment?</h2>
+            <p className="text-sm text-slate-600 mb-4">
+              Are you sure you want to cancel {cancelTarget.date} at {cancelTarget.startTime}?
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setCancelTarget(null)}
+                className="px-4 py-1.5 border rounded"
+              >
+                Keep Appointment
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCancel}
+                className="px-4 py-1.5 bg-red-600 text-white rounded"
+              >
+                Confirm Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

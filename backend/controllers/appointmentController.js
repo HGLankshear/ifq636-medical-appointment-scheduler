@@ -201,10 +201,33 @@ const rejectAppointment = async (req, res) => {
   }
 };
  
+const cancelAppointment = async (req, res) => {
+  try {
+    const appt = await Appointment.findById(req.params.id);
+    if (!appt) {
+      return res.status(404).json({ message: 'Appointment not found.' });
+    }
+    if (String(appt.patientId) !== String(req.user._id)) {
+      return res.status(403).json({ message: 'Access denied.' });
+    }
+    if (!['Pending', 'Approved'].includes(appt.status)) {
+      return res.status(400).json({ message: 'Only Pending or Approved bookings can be cancelled.' });
+    }
+ 
+    appt.status = 'Cancelled';
+    appt.tentativeGpId = null;
+    await appt.save();
+    return res.json(appt);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+ 
 module.exports = {
   createAppointmentRequest,
   getMyAppointments,
   getAllAppointments,
   approveAppointment,
   rejectAppointment,
+  cancelAppointment,
 };
